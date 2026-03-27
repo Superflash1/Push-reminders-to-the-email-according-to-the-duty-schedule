@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  duty-reminder:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: duty-reminder
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      APP_NAME: ${APP_NAME:-Duty Reminder}
+      APP_ENV: ${APP_ENV:-prod}
+      APP_HOST: ${APP_HOST:-0.0.0.0}
+      APP_PORT: ${APP_PORT:-8000}
+      SQLITE_PATH: ${SQLITE_PATH:-/app/data/duty_reminder.db}
+      TIMEZONE: ${TIMEZONE:-Asia/Shanghai}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+    volumes:
+      - ./data:/app/data

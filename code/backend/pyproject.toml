@@ -1,0 +1,27 @@
+[project]
+name = "duty-reminder-backend"
+version = "0.1.0"
+description = "Duty reminder backend"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "fastapi==0.116.1",
+  "uvicorn==0.35.0",
+  "sqlalchemy==2.0.43",
+  "pydantic==2.11.7",
+  "pydantic-settings==2.10.1",
+  "python-multipart==0.0.20",
+  "pandas==2.3.2",
+  "openpyxl==3.1.5",
+  "apscheduler==3.10.4",
+  "jinja2==3.1.6",
+  "email-validator==2.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==8.4.2",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
