@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -16,7 +17,22 @@ from app.services.template_service import render_template
 
 
 def run_reminder_once(db: Session, now: datetime | None = None) -> int:
-    now = now or datetime.now()
+    setting = db.query(SystemSetting).first()
+    if not setting:
+        return 0
+
+    tz_name = (setting.timezone or "Asia/Shanghai").strip() or "Asia/Shanghai"
+    try:
+        tz = ZoneInfo(tz_name)
+    except Exception:
+        tz = ZoneInfo("Asia/Shanghai")
+
+    now = now or datetime.now(tz)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=tz)
+    else:
+        now = now.astimezone(tz)
+
     now_hm = now.strftime("%H:%M")
 
     rules = (
@@ -26,10 +42,6 @@ def run_reminder_once(db: Session, now: datetime | None = None) -> int:
         .all()
     )
 
-    setting = db.query(SystemSetting).first()
-    if not setting:
-        return 0
-
     templates = {t.template_type: t for t in db.query(MailTemplate).filter(MailTemplate.enabled.is_(True)).all()}
     duty_tpl = templates.get("DUTY_REMINDER")
     admin_tpl = templates.get("ADMIN_FALLBACK")
@@ -37,7 +49,7 @@ def run_reminder_once(db: Session, now: datetime | None = None) -> int:
     processed = 0
 
     for rule in rules:
-        biz_date = now.date() if rule.offset_day == 0 else (now.date() + timedelta(days=1))
+        biz_date = now.date() + timedelta(days=rule.offset_day)
         schedule = db.query(DutySchedule).filter(DutySchedule.duty_date == biz_date).first()
         if not schedule:
             continue
